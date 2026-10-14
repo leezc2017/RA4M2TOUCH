@@ -20,6 +20,9 @@ void ctsu_end_isr(void);
 #define CTSU_READ_IRQn          ((IRQn_Type) 1) /* CTSU READ (Measurement data transfer request interrupt) */
 #define VECTOR_NUMBER_CTSU_END ((IRQn_Type) 2) /* CTSU END (Measurement end interrupt) */
 #define CTSU_END_IRQn          ((IRQn_Type) 2) /* CTSU END (Measurement end interrupt) */
+/* The number of entries required for the ICU vector table. */
+#define BSP_ICU_VECTOR_NUM_ENTRIES (3)
+
 #ifdef __cplusplus
         }
         #endif

@@ -1,33 +1,17 @@
-/***********************************************************************************************************************
- * Copyright [2020-2022] Renesas Electronics Corporation and/or its affiliates.  All Rights Reserved.
- *
- * This software and documentation are supplied by Renesas Electronics America Inc. and may only be used with products
- * of Renesas Electronics Corp. and its affiliates ("Renesas").  No other uses are authorized.  Renesas products are
- * sold pursuant to Renesas terms and conditions of sale.  Purchasers are solely responsible for the selection and use
- * of Renesas products and Renesas assumes no liability.  No license, express or implied, to any intellectual property
- * right is granted by Renesas. This software is protected under all applicable laws, including copyright laws. Renesas
- * reserves the right to change or discontinue this software and/or this documentation. THE SOFTWARE AND DOCUMENTATION
- * IS DELIVERED TO YOU "AS IS," AND RENESAS MAKES NO REPRESENTATIONS OR WARRANTIES, AND TO THE FULLEST EXTENT
- * PERMISSIBLE UNDER APPLICABLE LAW, DISCLAIMS ALL WARRANTIES, WHETHER EXPLICITLY OR IMPLICITLY, INCLUDING WARRANTIES
- * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT, WITH RESPECT TO THE SOFTWARE OR
- * DOCUMENTATION.  RENESAS SHALL HAVE NO LIABILITY ARISING OUT OF ANY SECURITY VULNERABILITY OR BREACH.  TO THE MAXIMUM
- * EXTENT PERMITTED BY LAW, IN NO EVENT WILL RENESAS BE LIABLE TO YOU IN CONNECTION WITH THE SOFTWARE OR DOCUMENTATION
- * (OR ANY PERSON OR ENTITY CLAIMING RIGHTS DERIVED FROM YOU) FOR ANY LOSS, DAMAGES, OR CLAIMS WHATSOEVER, INCLUDING,
- * WITHOUT LIMITATION, ANY DIRECT, CONSEQUENTIAL, SPECIAL, INDIRECT, PUNITIVE, OR INCIDENTAL DAMAGES; ANY LOST PROFITS,
- * OTHER ECONOMIC DAMAGE, PROPERTY DAMAGE, OR PERSONAL INJURY; AND EVEN IF RENESAS HAS BEEN ADVISED OF THE POSSIBILITY
- * OF SUCH LOSS, DAMAGES, CLAIMS OR COSTS.
- **********************************************************************************************************************/
+/*
+* Copyright (c) 2020 - 2026 Renesas Electronics Corporation and/or its affiliates
+*
+* SPDX-License-Identifier: BSD-3-Clause
+*/
 
 /*******************************************************************************************************************//**
- * @ingroup RENESAS_INTERFACES
+ * @ingroup RENESAS_CAPTOUCH_INTERFACES
  * @defgroup CTSU_API CTSU Interface
  * @brief Interface for Capacitive Touch Sensing Unit (CTSU) functions.
  *
  * @section CTSU_API_Summary Summary
  * The CTSU interface provides CTSU functionality.
  *
- * The CTSU interface can be implemented by:
- * - @ref CTSU
  *
  * @{
  **********************************************************************************************************************/
@@ -62,9 +46,9 @@ FSP_HEADER
 typedef enum e_ctsu_event
 {
     CTSU_EVENT_SCAN_COMPLETE = 0x00,   ///< Normal end
-    CTSU_EVENT_OVERFLOW      = 0x01,   ///< Sensor counter overflow (CTSUST.CTSUSOVF set)
-    CTSU_EVENT_ICOMP         = 0x02,   ///< Abnormal TSCAP voltage (CTSUERRS.CTSUICOMP set)
-    CTSU_EVENT_ICOMP1        = 0x04    ///< Abnormal sensor current (CTSUSR.ICOMP1 set)
+    CTSU_EVENT_OVERFLOW      = 0x01,   ///< Sensor counter overflow (CTSU1: CTSUST.CTSUSOVF set, CTSU2: CTSUSR.SENSOVF set)
+    CTSU_EVENT_ICOMP         = 0x02,   ///< Abnormal TSCAP voltage (CTSU1: CTSUERRS.CTSUICOMP set, CTSU2 : CTSUSR.ICOMP0 set)
+    CTSU_EVENT_ICOMP1        = 0x04    ///< Abnormal sensor current (CTSU2: CTSUSR.ICOMP1 set)
 } ctsu_event_t;
 
 /** CTSU Scan Start Trigger Select */
@@ -81,7 +65,7 @@ typedef enum e_ctsu_txvsel
     CTSU_TXVSEL_INTERNAL_POWER         ///< Internal logic power supply selected
 } ctsu_txvsel_t;
 
-/** CTSU Transmission Power Supply Select 2 (CTSU2 Only) */
+/** CTSU Transmission Power Supply Select 2 (CTSU2) */
 typedef enum e_ctsu_txvsel2
 {
     CTSU_TXVSEL_MODE,                  ///< Follow TXVSEL setting
@@ -107,12 +91,12 @@ typedef enum e_ctsu_atune12
 /** CTSU Measurement Mode Select */
 typedef enum e_ctsu_mode
 {
-    CTSU_MODE_SELF_MULTI_SCAN  = 1,    ///< Self-capacitance multi scan mode
-    CTSU_MODE_MUTUAL_FULL_SCAN = 3,    ///< Mutual capacitance full scan mode
-    CTSU_MODE_MUTUAL_CFC_SCAN  = 7,    ///< Mutual capacitance cfc scan mode (CTSU2 Only)
-    CTSU_MODE_CURRENT_SCAN     = 9,    ///< Current scan mode (CTSU2 Only)
-    CTSU_MODE_CORRECTION_SCAN  = 17,   ///< Correction scan mode (CTSU2 Only)
-    CTSU_MODE_DIAGNOSIS_SCAN   = 33    ///< Diagnosis scan mode
+    CTSU_MODE_SELF_MULTI_SCAN  = 1,    ///< Self-capacitance measurement mode
+    CTSU_MODE_MUTUAL_FULL_SCAN = 3,    ///< Mutual-capacitance measurement mode
+    CTSU_MODE_MUTUAL_CFC_SCAN  = 7,    ///< Mutual-capacitance parallel measurement mode (CTSU2 only)
+    CTSU_MODE_CURRENT_SCAN     = 9,    ///< Current measurement mode (CTSU2)
+    CTSU_MODE_CORRECTION_SCAN  = 17,   ///< Correction measurement mode (CTSU2)
+    CTSU_MODE_DIAGNOSIS_SCAN   = 33    ///< Diagnosis mode
 } ctsu_md_t;
 
 /** CTSU Non-Measured Channel Output Select (CTSU2 Only) */
@@ -124,7 +108,7 @@ typedef enum e_ctsu_posel
     CTSU_POSEL_SAME_PULSE              ///< Same phase pulse output as transmission channel through the power setting by the TXVSEL[1:0] bits
 } ctsu_posel_t;
 
-/** CTSU Spectrum Diffusion Frequency Division Setting (CTSU Only) */
+/** CTSU Spectrum Diffusion Frequency Division Setting (CTSU1) */
 typedef enum e_ctsu_ssdiv
 {
     CTSU_SSDIV_4000,                   ///< 4.00 <= Base clock frequency (MHz)
@@ -149,6 +133,7 @@ typedef enum e_ctsu_ssdiv
 typedef enum e_ctsu_specific_data_type
 {
     CTSU_SPECIFIC_RAW_DATA,
+    CTSU_SPECIFIC_CCO_CORRECTION_DATA,
     CTSU_SPECIFIC_CORRECTION_DATA,
     CTSU_SPECIFIC_SELECTED_FREQ,
 } ctsu_specific_data_type_t;
@@ -157,12 +142,10 @@ typedef enum e_ctsu_specific_data_type
 typedef struct st_ctsu_callback_args
 {
     ctsu_event_t event;                ///< The event can be used to identify what caused the callback.
-    void const * p_context;            ///< Placeholder for user data. Set in ctsu_api_t::open function in ::ctsu_cfg_t.
+    void       * p_context;            ///< Placeholder for user data. Set in ctsu_api_t::open function in ::ctsu_cfg_t.
 } ctsu_callback_args_t;
 
 /** CTSU Control block. Allocate an instance specific control block to pass into the API calls.
- * @par Implemented as
- * - ctsu_instance_ctrl_t
  */
 typedef void ctsu_ctrl_t;
 
@@ -170,22 +153,42 @@ typedef void ctsu_ctrl_t;
 /** Element Configuration */
 typedef struct st_ctsu_element
 {
-    ctsu_ssdiv_t ssdiv;                ///< CTSU Spectrum Diffusion Frequency Division Setting (CTSU Only)
+    ctsu_ssdiv_t ssdiv;                ///< CTSU Spectrum Diffusion Frequency Division Setting (CTSU1)
     uint16_t     so;                   ///< CTSU Sensor Offset Adjustment
     uint8_t      snum;                 ///< CTSU Measurement Count Setting
     uint8_t      sdpa;                 ///< CTSU Base Clock Setting
 } ctsu_element_cfg_t;
+
+/** Configuration of each automatic judgement button */
+typedef struct st_ctsu_auto_button_cfg
+{
+    uint8_t  elem_index;               ///< Element number used by this button for automatic judgement.
+    uint16_t threshold;                ///< Touch/non-touch judgement threshold for automatic judgement.
+    uint16_t hysteresis;               ///< Threshold hysteresis for chattering prevention for automatic judgement.
+} ctsu_auto_button_cfg_t;
 
 /** User configuration structure, used in open function */
 typedef struct st_ctsu_cfg
 {
     ctsu_cap_t                 cap;                     ///< CTSU Scan Start Trigger Select
     ctsu_txvsel_t              txvsel;                  ///< CTSU Transmission Power Supply Select
-    ctsu_txvsel2_t             txvsel2;                 ///< CTSU Transmission Power Supply Select 2 (CTSU2 Only)
-    ctsu_atune1_t              atune1;                  ///< CTSU Power Supply Capacity Adjustment (CTSU Only)
-    ctsu_atune12_t             atune12;                 ///< CTSU Power Supply Capacity Adjustment (CTSU2 Only)
+    ctsu_txvsel2_t             txvsel2;                 ///< CTSU Transmission Power Supply Select 2 (CTSU2)
+    ctsu_atune1_t              atune1;                  ///< CTSU Power Supply Capacity Adjustment (CTSU1)
+    ctsu_atune12_t             atune12;                 ///< CTSU Power Supply Capacity Adjustment (CTSU2)
     ctsu_md_t                  md;                      ///< CTSU Measurement Mode Select
-    ctsu_posel_t               posel;                   ///< CTSU Non-Measured Channel Output Select (CTSU2 Only)
+    ctsu_posel_t               posel;                   ///< CTSU Non-Measured Channel Output Select (CTSU2)
+    uint8_t                    tsod;                    ///< TS all terminal output control for multi electrode scan
+    uint8_t                    mec_ts;                  ///< TS number used when using the MEC function
+    uint8_t                    mec_shield_ts;           ///< TS number of active shield used when using MEC function
+    uint8_t                    tlot;                    ///< Number of consecutive judgements exceeding the threshold L for automatic judgement
+    uint8_t                    thot;                    ///< Number of consecutive judgements exceeding the threshold H for automatic judgement
+    uint8_t                    jc;                      ///< Judgement condition for automatic judgement
+    uint8_t                    ajmmat;                  ///< Measured value moving average number of times for automatic judgement
+    uint8_t                    ajbmat;                  ///< Average number of baselines for automatic judgement
+    uint8_t                    mtucfen;                 ///< Mutual capacity operation for automatic judgement
+    uint8_t                    ajfen;                   ///< Automatic judgement function enabled for automatic judgement
+    uint8_t                    autojudge_monitor_num;   ///< Method number for QE monitor for automatic judgement
+    uint8_t                    majirimd;                ///< JMM or VMM for automatic judgement
     uint8_t                    ctsuchac0;               ///< TS00-TS07 enable mask
     uint8_t                    ctsuchac1;               ///< TS08-TS15 enable mask
     uint8_t                    ctsuchac2;               ///< TS16-TS23 enable mask
@@ -204,22 +207,23 @@ typedef struct st_ctsu_cfg
     void (* p_callback)(ctsu_callback_args_t * p_args); ///< Callback provided when CTSUFN ISR occurs.
     transfer_instance_t const * p_transfer_tx;          ///< DTC instance for transmit at CTSUWR. Set to NULL if unused.
     transfer_instance_t const * p_transfer_rx;          ///< DTC instance for receive at CTSURD. Set to NULL if unused.
-    adc_instance_t const      * p_adc_instance;         ///< ADC instance for temperature correction.
+    adc_instance_t const      * p_adc_instance;         ///< ADC instance for diagnosis.
+    adc_instance_t const      * p_adc_ivref_instance;   ///< ADC instance for diagnosis.
     IRQn_Type    write_irq;                             ///< CTSU_CTSUWR interrupt vector
     IRQn_Type    read_irq;                              ///< CTSU_CTSURD interrupt vector
     IRQn_Type    end_irq;                               ///< CTSU_CTSUFN interrupt vector
-    void const * p_context;                             ///< User defined context passed into callback function.
+    void       * p_context;                             ///< User defined context passed into callback function.
     void const * p_extend;                              ///< Pointer to extended configuration by instance of interface.
     uint16_t     tuning_self_target_value;              ///< Target self value for initial offset tuning
     uint16_t     tuning_mutual_target_value;            ///< Target mutual value for initial offset tuning
+    ctsu_auto_button_cfg_t const * p_ctsu_auto_buttons; ///< Pointer to array of automatic judgement button configuration.
+    uint8_t majority_mode;                              ///< Software majority mode selection
 } ctsu_cfg_t;
 
 /** Functions implemented at the HAL layer will follow this API. */
 typedef struct st_ctsu_api
 {
     /** Open driver.
-     * @par Implemented as
-     * - @ref R_CTSU_Open()
      *
      * @param[in]  p_ctrl       Pointer to control structure.
      * @param[in]  p_cfg        Pointer to pin configuration structure.
@@ -227,16 +231,12 @@ typedef struct st_ctsu_api
     fsp_err_t (* open)(ctsu_ctrl_t * const p_ctrl, ctsu_cfg_t const * const p_cfg);
 
     /** Scan start.
-     * @par Implemented as
-     * - @ref R_CTSU_ScanStart()
      *
      * @param[in]  p_ctrl       Pointer to control structure.
      */
     fsp_err_t (* scanStart)(ctsu_ctrl_t * const p_ctrl);
 
     /** Data get.
-     * @par Implemented as
-     * - @ref R_CTSU_DataGet()
      *
      * @param[in]  p_ctrl       Pointer to control structure.
      * @param[out] p_data       Pointer to get data array.
@@ -244,24 +244,18 @@ typedef struct st_ctsu_api
     fsp_err_t (* dataGet)(ctsu_ctrl_t * const p_ctrl, uint16_t * p_data);
 
     /** ScanStop.
-     * @par Implemented as
-     * - @ref R_CTSU_ScanStop()
      *
      * @param[in]  p_ctrl       Pointer to control structure.
      */
     fsp_err_t (* scanStop)(ctsu_ctrl_t * const p_ctrl);
 
     /** Diagnosis.
-     * @par Implemented as
-     * - @ref R_CTSU_Diagnosis()
      *
      * @param[in]  p_ctrl       Pointer to control structure.
      */
     fsp_err_t (* diagnosis)(ctsu_ctrl_t * const p_ctrl);
 
     /** Specify callback function and optional context pointer and working memory pointer.
-     * @par Implemented as
-     * - @ref R_CTSU_CallbackSet()
      *
      * @param[in]   p_ctrl                   Pointer to the CTSU control block.
      * @param[in]   p_callback               Callback function
@@ -269,20 +263,16 @@ typedef struct st_ctsu_api
      * @param[in]   p_working_memory         Pointer to volatile memory where callback structure can be allocated.
      *                                       Callback arguments allocated here are only valid during the callback.
      */
-    fsp_err_t (* callbackSet)(ctsu_ctrl_t * const p_api_ctrl, void (* p_callback)(ctsu_callback_args_t *),
-                              void const * const p_context, ctsu_callback_args_t * const p_callback_memory);
+    fsp_err_t (* callbackSet)(ctsu_ctrl_t * const p_ctrl, void (* p_callback)(ctsu_callback_args_t *),
+                              void * const p_context, ctsu_callback_args_t * const p_callback_memory);
 
     /** Close driver.
-     * @par Implemented as
-     * - @ref R_CTSU_Close()
      *
      * @param[in]  p_ctrl       Pointer to control structure.
      */
     fsp_err_t (* close)(ctsu_ctrl_t * const p_ctrl);
 
     /** Specific Data get.
-     * @par Implemented as
-     * - @ref R_CTSU_SpecificDataGet()
      *
      * @param[in]  p_ctrl              Pointer to control structure.
      * @param[out] p_specific_data     Pointer to get specific data array.
@@ -292,17 +282,20 @@ typedef struct st_ctsu_api
                                   ctsu_specific_data_type_t specific_data_type);
 
     /** Data Insert.
-     * @par Implemented as
-     * - @ref R_CTSU_DataInsert()
      *
      * @param[in]  p_ctrl              Pointer to control structure.
      * @param[in]  p_insert_data       Pointer to insert data.
      */
     fsp_err_t (* dataInsert)(ctsu_ctrl_t * const p_ctrl, uint16_t * p_insert_data);
 
+    /** Initialize automatic judgement and get button status.
+     *
+     * @param[in]  p_ctrl          Pointer to control structure.
+     * @param[out] p_button_status Pointer to get button status array.
+     */
+    fsp_err_t (* autoJudgementDataGet)(ctsu_ctrl_t * const p_ctrl, uint64_t * p_button_status);
+
     /** Adjust the offset value to tune the sensor.
-     * @par Implemented as
-     * - @ref R_CTSU_OffsetTuning()
      *
      * @param[in]  p_ctrl          Pointer to control structure.
      */

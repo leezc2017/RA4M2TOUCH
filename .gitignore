@@ -1,16 +1,42 @@
 # ============================================================================
 # RA4M2TOUCH (RA4M2 QE 触摸示例) .gitignore
-# 初始版本（FSP 4.0.0）时 Debug/ 未入库，整目录忽略。
+#
+# 原则: 提交"源码 + 可复现的构建描述 + 配置"，不提交"产物 + IDE 本地状态"
 # ============================================================================
 
 # ---- 构建产物 ----
-Debug/
+# 注意：Debug/ 目录本身【不】整体忽略。其中的构建描述文件——
+#   makefile / makefile.init / sources.mk / objects.mk / */subdir.mk
+#   fsp_gen.ld / memory_regions.ld / bsp_linker_info.h
+# 已入库，路径为相对路径，新克隆的工程无需打开 e2studio 即可 make。
+Debug/*.elf
+Debug/*.hex
+Debug/*.srec
+Debug/*.map
+Debug/*.rpd
+Debug/*.sbd
+Debug/*.siz
+Debug/*.in
+Debug/*.tmp
+Debug/clean_file.tmp
+Debug/compile_commands.json
+Debug/**/*.o
+Debug/**/*.d
+*.o
+*.d
+*.in
+*.elf
+*.hex
+*.srec
+*.map
+*.rpd
+*.sbd
 
 # ---- 日志 / 临时数据 ----
 *.log
 *.bak
 
-# ---- e2studio / Eclipse 本地状态 ----
+# ---- e2studio / Eclipse 本地状态（含本机绝对路径，不提交）----
 .settings/
 metadata/
 *.launch
@@ -26,3 +52,13 @@ metadata/
 Thumbs.db
 .DS_Store
 desktop.ini
+
+# ============================================================================
+# 以下【刻意提交】，不要加进忽略：
+#   ra/                  FSP 6.6 库与 CMSIS（按需裁剪）
+#   ra_gen/              RASC 生成代码（hal_data / pin_data / vector_data）
+#   ra_cfg/ + ra_cfg.txt FSP 配置参数
+#   qe_gen/ + QE-Touch/  QE Touch 标定产物
+#   script/fsp.ld        链接脚本
+#   .project / .cproject / configuration.xml   e2studio 工程文件
+# ============================================================================

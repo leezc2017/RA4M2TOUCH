@@ -1,22 +1,8 @@
-/***********************************************************************************************************************
- * Copyright [2020-2022] Renesas Electronics Corporation and/or its affiliates.  All Rights Reserved.
- *
- * This software and documentation are supplied by Renesas Electronics America Inc. and may only be used with products
- * of Renesas Electronics Corp. and its affiliates ("Renesas").  No other uses are authorized.  Renesas products are
- * sold pursuant to Renesas terms and conditions of sale.  Purchasers are solely responsible for the selection and use
- * of Renesas products and Renesas assumes no liability.  No license, express or implied, to any intellectual property
- * right is granted by Renesas. This software is protected under all applicable laws, including copyright laws. Renesas
- * reserves the right to change or discontinue this software and/or this documentation. THE SOFTWARE AND DOCUMENTATION
- * IS DELIVERED TO YOU "AS IS," AND RENESAS MAKES NO REPRESENTATIONS OR WARRANTIES, AND TO THE FULLEST EXTENT
- * PERMISSIBLE UNDER APPLICABLE LAW, DISCLAIMS ALL WARRANTIES, WHETHER EXPLICITLY OR IMPLICITLY, INCLUDING WARRANTIES
- * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT, WITH RESPECT TO THE SOFTWARE OR
- * DOCUMENTATION.  RENESAS SHALL HAVE NO LIABILITY ARISING OUT OF ANY SECURITY VULNERABILITY OR BREACH.  TO THE MAXIMUM
- * EXTENT PERMITTED BY LAW, IN NO EVENT WILL RENESAS BE LIABLE TO YOU IN CONNECTION WITH THE SOFTWARE OR DOCUMENTATION
- * (OR ANY PERSON OR ENTITY CLAIMING RIGHTS DERIVED FROM YOU) FOR ANY LOSS, DAMAGES, OR CLAIMS WHATSOEVER, INCLUDING,
- * WITHOUT LIMITATION, ANY DIRECT, CONSEQUENTIAL, SPECIAL, INDIRECT, PUNITIVE, OR INCIDENTAL DAMAGES; ANY LOST PROFITS,
- * OTHER ECONOMIC DAMAGE, PROPERTY DAMAGE, OR PERSONAL INJURY; AND EVEN IF RENESAS HAS BEEN ADVISED OF THE POSSIBILITY
- * OF SUCH LOSS, DAMAGES, CLAIMS OR COSTS.
- **********************************************************************************************************************/
+/*
+* Copyright (c) 2020 - 2026 Renesas Electronics Corporation and/or its affiliates
+*
+* SPDX-License-Identifier: BSD-3-Clause
+*/
 
 /*******************************************************************************************************************//**
  * @addtogroup TOUCH
@@ -38,6 +24,9 @@ FSP_HEADER
 /***********************************************************************************************************************
  * Macro definitions
  **********************************************************************************************************************/
+#if (CTSU_CFG_AUTO_JUDGE_ENABLE == 1)
+ #define TOUCH_AUTO_JUDGE_MONITOR    (1)
+#endif
 
 /***********************************************************************************************************************
  * Typedef definitions
@@ -135,6 +124,15 @@ typedef struct
     uint8_t    num_drift;              ///< Copy from config by Open API.
 } touch_pad_info_t;
 
+/** Information of touch button judge(CTSU2) */
+typedef struct st_touch_mm_info
+{
+    uint8_t  id;
+    uint8_t  mm_index;
+    uint16_t mm_result[CTSU_MAJORITY_MODE_ELEMENTS];
+    uint8_t  majority_mode;
+} touch_mm_info_t;
+
 /** TOUCH private control block. DO NOT MODIFY. Initialization occurs when RM_TOUCH_Open() is called. */
 typedef struct st_touch_instance_ctrl
 {
@@ -146,6 +144,7 @@ typedef struct st_touch_instance_ctrl
     touch_pad_info_t        pinfo;                ///< Information of pad.
     touch_cfg_t const     * p_touch_cfg;          ///< Pointer to initial configurations.
     ctsu_instance_t const * p_ctsu_instance;      ///< Pointer to CTSU instance.
+    touch_mm_info_t       * p_touch_mm_info;      ///< Pointer to information of touch button judge.
 } touch_instance_ctrl_t;
 
 /**********************************************************************************************************************
@@ -174,13 +173,17 @@ fsp_err_t RM_TOUCH_PadDataGet(touch_ctrl_t * const p_ctrl,
 fsp_err_t RM_TOUCH_ScanStop(touch_ctrl_t * const p_ctrl);
 fsp_err_t RM_TOUCH_CallbackSet(touch_ctrl_t * const          p_api_ctrl,
                                void (                      * p_callback)(touch_callback_args_t *),
-                               void const * const            p_context,
+                               void * const                  p_context,
                                touch_callback_args_t * const p_callback_memory);
 fsp_err_t RM_TOUCH_Close(touch_ctrl_t * const p_ctrl);
 fsp_err_t RM_TOUCH_SensitivityRatioGet(touch_ctrl_t * const       p_ctrl,
                                        touch_sensitivity_info_t * p_touch_sensitivity_info);
 fsp_err_t RM_TOUCH_ThresholdAdjust(touch_ctrl_t * const p_ctrl, touch_sensitivity_info_t * p_touch_sensitivity_info);
 fsp_err_t RM_TOUCH_DriftControl(touch_ctrl_t * const p_ctrl, uint16_t input_drift_freq);
+fsp_err_t RM_TOUCH_MonitorAddressGet(touch_ctrl_t * const p_ctrl,
+                                     uint8_t           ** pp_monitor_buf,
+                                     uint8_t           ** pp_monitor_id,
+                                     uint16_t          ** pp_monitor_size);
 
 /* Common macro for FSP header files. There is also a corresponding FSP_HEADER macro at the top of this file. */
 FSP_FOOTER

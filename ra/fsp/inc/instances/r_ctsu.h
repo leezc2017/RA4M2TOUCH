@@ -1,22 +1,8 @@
-/***********************************************************************************************************************
- * Copyright [2020-2022] Renesas Electronics Corporation and/or its affiliates.  All Rights Reserved.
- *
- * This software and documentation are supplied by Renesas Electronics America Inc. and may only be used with products
- * of Renesas Electronics Corp. and its affiliates ("Renesas").  No other uses are authorized.  Renesas products are
- * sold pursuant to Renesas terms and conditions of sale.  Purchasers are solely responsible for the selection and use
- * of Renesas products and Renesas assumes no liability.  No license, express or implied, to any intellectual property
- * right is granted by Renesas. This software is protected under all applicable laws, including copyright laws. Renesas
- * reserves the right to change or discontinue this software and/or this documentation. THE SOFTWARE AND DOCUMENTATION
- * IS DELIVERED TO YOU "AS IS," AND RENESAS MAKES NO REPRESENTATIONS OR WARRANTIES, AND TO THE FULLEST EXTENT
- * PERMISSIBLE UNDER APPLICABLE LAW, DISCLAIMS ALL WARRANTIES, WHETHER EXPLICITLY OR IMPLICITLY, INCLUDING WARRANTIES
- * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT, WITH RESPECT TO THE SOFTWARE OR
- * DOCUMENTATION.  RENESAS SHALL HAVE NO LIABILITY ARISING OUT OF ANY SECURITY VULNERABILITY OR BREACH.  TO THE MAXIMUM
- * EXTENT PERMITTED BY LAW, IN NO EVENT WILL RENESAS BE LIABLE TO YOU IN CONNECTION WITH THE SOFTWARE OR DOCUMENTATION
- * (OR ANY PERSON OR ENTITY CLAIMING RIGHTS DERIVED FROM YOU) FOR ANY LOSS, DAMAGES, OR CLAIMS WHATSOEVER, INCLUDING,
- * WITHOUT LIMITATION, ANY DIRECT, CONSEQUENTIAL, SPECIAL, INDIRECT, PUNITIVE, OR INCIDENTAL DAMAGES; ANY LOST PROFITS,
- * OTHER ECONOMIC DAMAGE, PROPERTY DAMAGE, OR PERSONAL INJURY; AND EVEN IF RENESAS HAS BEEN ADVISED OF THE POSSIBILITY
- * OF SUCH LOSS, DAMAGES, CLAIMS OR COSTS.
- **********************************************************************************************************************/
+/*
+* Copyright (c) 2020 - 2026 Renesas Electronics Corporation and/or its affiliates
+*
+* SPDX-License-Identifier: BSD-3-Clause
+*/
 
 /*******************************************************************************************************************//**
  * @addtogroup CTSU
@@ -46,6 +32,80 @@ FSP_HEADER
 
  #define CTSU_DIAG_HIGH_CURRENT_SOURCE    (16) ///< number of high current source table at Diagnosis
  #define CTSU_DIAG_LOW_CURRENT_SOURCE     (10) ///< number of low current source table at Diagnosis
+#endif
+
+#define CTSU_VALUE_MAJORITY_MODE          (0x01)
+#define CTSU_JUDGEMENT_MAJORITY_MODE      (0x02)
+
+#ifndef CTSU_CFG_MAJORITY_MODE
+ #define CTSU_CFG_MAJORITY_MODE           (CTSU_VALUE_MAJORITY_MODE)
+#endif
+#if (BSP_FEATURE_CTSU_VERSION == 2)
+ #if (CTSU_CFG_MAJORITY_MODE & CTSU_JUDGEMENT_MAJORITY_MODE)
+
+  #define CTSU_MAJORITY_MODE_ELEMENTS     (CTSU_CFG_NUM_SUMULTI)
+ #else
+  #define CTSU_MAJORITY_MODE_ELEMENTS     (1)
+ #endif
+#endif
+
+#if (BSP_FEATURE_CTSU_VERSION == 1)
+ #define CTSU_MAJORITY_MODE_ELEMENTS      (1)
+#endif
+
+#ifdef QE_TOUCH_CONFIGURATION
+ #if (CTSU_CFG_AUTO_JUDGE_ENABLE == 1)
+  #if (QE_TOUCH_VERSION < 0x0410)
+   #error "Error! For Autojudge measurement with CTSU FSP 5.8.0 or later, please use QE V4.1.0 or later."
+  #endif
+ #endif
+#endif
+#if (BSP_FEATURE_CTSU_VERSION == 2)
+ #if (CTSU_CFG_DIAG_SUPPORT_ENABLE == 1)
+
+/* LDO output voltage diagnosis macro */
+  #define CTSU_DIAG_INTERNAL_VOLT_TOL_PCT                        (6)  // Internal reference voltage tolerance [%]
+  #define CTSU_DIAG_TSCAP_VOLT_TOL_MAX_PCT                       (5)  // Maximum voltage tolerance for TSCAP [%]
+  #define CTSU_DIAG_TSCAP_VOLT_TOL_MIN_PCT                       (6)  // Minimum voltage tolerance for TSCAP [%]
+
+  #if (CTSU_CFG_LOW_VOLTAGE_MODE == 0)
+   #define CTSU_DIAG_ADC_OFFSET_ERR_12B                          (8)  // ADC offset error (ADC 12-bit) (NM mode)
+  #else
+   #define CTSU_DIAG_ADC_OFFSET_ERR_12B                          (11) // ADC offset error (ADC 12-bit) (LV mode)
+  #endif
+
+  #define CTSU_DIAG_ADC_ABS_ACC_ERR_12B                          (13) // ADC absolute accuracy error (ADC 12-bit) (NM/LV mode)
+
+  #define CTSU_DIAG_OUTPUT_VOLTAGE_SELF_TEST_MARGIN_PCT          (5)  // Self test margin for output voltage diagnosis [%]
+
+/* Load resistance diagnosis macro */
+  #define CTSU_DIAG_LOAD_RESISTANCE_SPEC_MARGIN_PCT              (23) // Margin to specification for load resistance diagnosis [%]
+  #define CTSU_DIAG_LOAD_RESISTANCE_SELF_TEST_MARGIN_PCT         (5)  // Self test margin for load resistance diagnosis [%]
+  #define CTSU_DIAG_IDLE_CURRENT_SPEC_MARGIN_PCT                 (23) // Margin to specification for idle current diagnosis [%]
+  #define CTSU_DIAG_IDLE_CURRENT_SELF_TEST_MARGIN_PCT            (25) // Self test margin for idle current diagnosis [%]
+
+/* Current source diagnosis macro */
+  #define CTSU_DIAG_UPPER_CURRENT_SOURCE_SPEC_MARGIN_PCT         (12) // Margin to specification for upper current source diagnosis [%]
+
+  #if (CTSU_CFG_LOW_VOLTAGE_MODE == 0)
+   #define CTSU_DIAG_LOWER_CURRENT_SOURCE_SPEC_MARGIN_PCT        (37) // Margin to specification for lower current source diagnosis [%]
+  #else
+   #define CTSU_DIAG_LOWER_CURRENT_SOURCE_SPEC_MARGIN_PCT        (40) // Margin to specification for lower current source diagnosis [%]
+  #endif
+
+  #define CTSU_DIAG_UPPER_CURRENT_SOURCE_SELF_TEST_MARGIN_PCT    (5)  // Self test margin for upper current source diagnosis [%]
+  #define CTSU_DIAG_LOWER_CURRENT_SOURCE_SELF_TEST_MARGIN_PCT    (5)  // Self test margin for lower current source diagnosis [%]
+
+/* SENSCLK gain macro */
+  #define CTSU_DIAG_SENSCLK_GAIN_SELF_TEST_MARGIN_PCT            (5)  // Self test margin for sensclk gain diagnosis [%]
+
+/* SUCLK gain macro */
+  #define CTSU_DIAG_SUCLK_GAIN_SELF_TEST_MARGIN_PCT              (5)  // Self test margin for suclk gain diagnosis [%]
+
+/* SUCLK clock recovery macro */
+  #define CTSU_DIAG_CLOCK_RECOVERY_SELF_TEST_MARGIN_PCT          (5)  // Self test margin for clock recovery diagnosis [%]
+
+ #endif
 #endif
 
 /***********************************************************************************************************************
@@ -110,8 +170,10 @@ typedef enum e_ctsu_diagnosis_state
     CTSU_DIAG_SUCLK,                   ///< Diagnosis of SUCLK running.
     CTSU_DIAG_CLOCK_RECOVERY,          ///< Diagnosis of clock recovery running.
     CTSU_DIAG_CFC,                     ///< Diagnosis of CFC running.
-    CTSU_DIAG_COMPLETE                 ///< Diagnosis complete.
+    CTSU_DIAG_COMPLETE,                ///< Diagnosis complete.
+    CTSU_DIAG_ADC_ERROR                ///< Diagnosis ADC open error.
 } ctsu_diagnosis_state_t;
+
  #endif
 #endif
 
@@ -148,6 +210,12 @@ typedef struct st_ctsu_self_buf
 } ctsu_self_buf_t;
 #endif
 
+typedef struct st_ctsu_data
+{
+    uint16_t decimal_point_data;
+    uint16_t int_data;
+} ctsu_data_t;
+
 /** Scan buffer data formats (Mutual) */
 #if (BSP_FEATURE_CTSU_VERSION == 2)
 typedef uint16_t ctsu_mutual_buf_t;
@@ -167,6 +235,7 @@ typedef struct st_ctsu_correction_info
     ctsu_correction_status_t status;                               ///< Correction status
     ctsu_ctsuwr_t            ctsuwr;                               ///< Correction scan parameter
     volatile ctsu_self_buf_t scanbuf;                              ///< Correction scan buffer
+    uint8_t calculation_error;                                     ///< Overflow or underflow in correction calclation
 #if (BSP_FEATURE_CTSU_VERSION == 2)
  #if (CTSU_CFG_TEMP_CORRECTION_SUPPORT == 1)
     uint16_t scan_index;                                           ///< Scan point index
@@ -177,8 +246,8 @@ typedef struct st_ctsu_correction_info
     uint16_t base_value[CTSU_RANGE_NUM];                           ///< Value of internal registance measurement
     uint16_t error_rate[CTSU_RANGE_NUM];                           ///< Error rate of base vs DAC
     uint16_t range_ratio[CTSU_RANGE_NUM - 1];                      ///< Ratio between 160uA range and other ranges
-    uint16_t dac_value[CTSU_CORRECTION_POINT_NUM];                 ///< Value of internal DAC measurement
-    uint16_t ref_value[CTSU_RANGE_NUM][CTSU_CORRECTION_POINT_NUM]; ///< Value of reference
+    uint16_t dac_value[CTSU_RANGE_NUM][CTSU_CORRECTION_POINT_NUM]; ///< Value of internal DAC measurement with VDC path correction
+    uint16_t coef[CTSU_RANGE_NUM][CTSU_CORRECTION_POINT_NUM];      ///< Correction coefficients
 #else
     uint16_t first_val;                                            ///< 1st correction value
     uint16_t second_val;                                           ///< 2nd correction value
@@ -239,23 +308,14 @@ typedef struct st_ctsu_diag_info
 /** Correction information */
 typedef struct st_ctsu_diag_info
 {
-    volatile ctsu_diagnosis_state_t state;                                                      ///< Diagnosis state
-    ctsu_ctsuwr_t ctsuwr;                                                                       ///< Correction scan parameter
-    uint8_t       lvmode;                                                                       ///< Diagnosis lv mode flag
-    uint8_t       loop_count;                                                                   ///< Diagnosis loop counter
-    uint32_t      ctsuscnt[3];                                                                  ///< Diagnosis raw data (suclk count value & sens count value)
-    uint32_t      error_registance[CTSU_RANGE_NUM];                                             ///< Diagnosis error regista
-    uint16_t      output_voltage_cnt[CTSU_RANGE_NUM * 2];                                       ///< Diagnosis load resistance count value
-    uint16_t      icomp0_value;                                                                 ///< Diagnosis icomp0 register value in over voltage test
-    uint16_t      icomp1_value;                                                                 ///< Diagnosis icomp1 register value in over current test
-    uint16_t      load_resistance[CTSU_RANGE_NUM];                                              ///< Diagnosis load resistance count value
-    uint16_t      current_source[CTSU_DIAG_HIGH_CURRENT_SOURCE + CTSU_DIAG_LOW_CURRENT_SOURCE]; ///< Diagnosis current source count value
-    uint16_t      sensclk_cnt[CTSU_CORRECTION_POINT_NUM];                                       ///< Diagnosis sensclk count value
-    uint16_t      suclk_cnt[CTSU_CORRECTION_POINT_NUM];                                         ///< Diagnosis suclk count value
-    uint16_t      suclk_count_clk_recv[3];                                                      ///< Diagnosis clock recovery suclk count value
-    uint16_t      cfc_cnt[CTSU_CORRCFC_POINT_NUM];                                              ///< Diagnosis cfc count value
-    uint32_t      chaca;                                                                        ///< Diagnosis CHACA
-    uint32_t      chacb;                                                                        ///< Diagnosis CHACB
+    volatile ctsu_diagnosis_state_t state; ///< Diagnosis state
+    fsp_err_t test_result;                 ///< Diagnosis test result
+    uint8_t   test_count;                  ///< Diagnosis test counter
+    uint8_t   measurement_count;           ///< Diagnosis measurement counter
+    uint32_t  measurement_sum;             ///< Diagnosis measurement sum
+    uint16_t  load_resistance;             ///< Diagnosis load resistance count value
+    uint16_t  average_data_pre;            ///< Diagnosis previous avrage data
+    uint8_t   onetime_exec_flag;           ///< Diagnosis one-time flag
 } ctsu_diag_info_t;
  #endif
 #endif
@@ -263,51 +323,57 @@ typedef struct st_ctsu_diag_info
 /** CTSU private control block. DO NOT MODIFY. Initialization occurs when R_CTSU_Open() is called. */
 typedef struct st_ctsu_instance_ctrl
 {
-    uint32_t                 open;               ///< Whether or not driver is open.
-    volatile ctsu_state_t    state;              ///< CTSU run state.
-    ctsu_cap_t               cap;                ///< CTSU Scan Start Trigger Select
-    ctsu_md_t                md;                 ///< CTSU Measurement Mode Select(copy to cfg)
-    ctsu_tuning_t            tuning;             ///< CTSU Initial offset tuning status.
-    uint16_t                 num_elements;       ///< Number of elements to scan
-    uint16_t                 wr_index;           ///< Word index into ctsuwr register array.
-    uint16_t                 rd_index;           ///< Word index into scan data buffer.
-    uint8_t                * p_tuning_count;     ///< Pointer to tuning count of each element. g_ctsu_tuning_count[] is set by Open API.
-    int32_t                * p_tuning_diff;      ///< Pointer to difference from base value of each element. g_ctsu_tuning_diff[] is set by Open API.
-    uint16_t                 average;            ///< CTSU Moving average counter.
-    uint16_t                 num_moving_average; ///< Copy from config by Open API.
-    uint8_t                  ctsucr1;            ///< Copy from (atune1 << 3, md << 6) by Open API. CLK, ATUNE0, CSW, and PON is set by HAL driver.
-    ctsu_ctsuwr_t          * p_ctsuwr;           ///< CTSUWR write register value. g_ctsu_ctsuwr[] is set by Open API.
-    ctsu_self_buf_t        * p_self_raw;         ///< Pointer to Self raw data. g_ctsu_self_raw[] is set by Open API.
-    uint16_t               * p_self_corr;        ///< Pointer to Self correction data. g_ctsu_self_corr[] is set by Open API.
-    uint16_t               * p_self_data;        ///< Pointer to Self moving average data. g_ctsu_self_data[] is set by Open API.
-    ctsu_mutual_buf_t      * p_mutual_raw;       ///< Pointer to Mutual raw data. g_ctsu_mutual_raw[] is set by Open API.
-    uint16_t               * p_mutual_pri_corr;  ///< Pointer to Mutual primary correction data. g_ctsu_self_corr[] is set by Open API.
-    uint16_t               * p_mutual_snd_corr;  ///< Pointer to Mutual secondary correction data. g_ctsu_self_corr[] is set by Open API.
-    uint16_t               * p_mutual_pri_data;  ///< Pointer to Mutual primary moving average data. g_ctsu_mutual_pri_data[] is set by Open API.
-    uint16_t               * p_mutual_snd_data;  ///< Pointer to Mutual secondary moving average data. g_ctsu_mutual_snd_data[] is set by Open API.
-    ctsu_correction_info_t * p_correction_info;  ///< Pointer to correction info
-    ctsu_txvsel_t            txvsel;             ///< CTSU Transmission Power Supply Select
-    ctsu_txvsel2_t           txvsel2;            ///< CTSU Transmission Power Supply Select 2 (CTSU2 Only)
-    uint8_t                  ctsuchac0;          ///< TS00-TS07 enable mask
-    uint8_t                  ctsuchac1;          ///< TS08-TS15 enable mask
-    uint8_t                  ctsuchac2;          ///< TS16-TS23 enable mask
-    uint8_t                  ctsuchac3;          ///< TS24-TS31 enable mask
-    uint8_t                  ctsuchac4;          ///< TS32-TS39 enable mask
-    uint8_t                  ctsuchtrc0;         ///< TS00-TS07 mutual-tx mask
-    uint8_t                  ctsuchtrc1;         ///< TS08-TS15 mutual-tx mask
-    uint8_t                  ctsuchtrc2;         ///< TS16-TS23 mutual-tx mask
-    uint8_t                  ctsuchtrc3;         ///< TS24-TS31 mutual-tx mask
-    uint8_t                  ctsuchtrc4;         ///< TS32-TS39 mutual-tx mask
-    uint16_t                 self_elem_index;    ///< self element index number for Current instance.
-    uint16_t                 mutual_elem_index;  ///< mutual element index number for Current instance.
-    uint16_t                 ctsu_elem_index;    ///< CTSU element index number for Current instance.
+    uint32_t              open;                    ///< Whether or not driver is open.
+    volatile ctsu_state_t state;                   ///< CTSU run state.
+    ctsu_cap_t            cap;                     ///< CTSU Scan Start Trigger Select
+    ctsu_md_t             md;                      ///< CTSU Measurement Mode Select(copy to cfg)
+    ctsu_tuning_t         tuning;                  ///< CTSU Initial offset tuning status.
+    uint16_t              num_elements;            ///< Number of elements to scan
+    uint16_t              wr_index;                ///< Word index into ctsuwr register array.
+    uint16_t              rd_index;                ///< Word index into scan data buffer.
+    uint8_t             * p_element_complete_flag; ///< Pointer to complete flag of each element. g_ctsu_element_complete_flag[] is set by Open API.
 #if (BSP_FEATURE_CTSU_VERSION == 2)
-    uint8_t * p_selected_freq_self;              ///< Frequency selected by self-capacity
-    uint8_t * p_selected_freq_mutual;            ///< Frequency selected by mutual-capacity
+    uint8_t * p_frequency_complete_flag;           ///< Pointer to complete flag of each frequency. g_ctsu_frequency_complete_flag[] is set by Open API.
+#endif
+    int32_t                * p_tuning_diff;        ///< Pointer to difference from base value of each element. g_ctsu_tuning_diff[] is set by Open API.
+    uint16_t                 average;              ///< CTSU Moving average counter.
+    uint16_t                 num_moving_average;   ///< Copy from config by Open API.
+    uint8_t                  ctsucr1;              ///< Copy from (atune1 << 3, md << 6) by Open API. CLK, ATUNE0, CSW, and PON is set by HAL driver.
+    ctsu_ctsuwr_t          * p_ctsuwr;             ///< CTSUWR write register value. g_ctsu_ctsuwr[] is set by Open API.
+    ctsu_self_buf_t        * p_self_raw;           ///< Pointer to Self raw data. g_ctsu_self_raw[] is set by Open API.
+    uint16_t               * p_self_corr;          ///< Pointer to Self correction data. g_ctsu_self_corr[] is set by Open API.
+    uint16_t               * p_self_mfc;           ///< Pointer to Self multi frequency correction data. g_ctsu_self_mfc[] is set by Open API.
+    ctsu_data_t            * p_self_data;          ///< Pointer to Self moving average data. g_ctsu_self_data[] is set by Open API.
+    ctsu_mutual_buf_t      * p_mutual_raw;         ///< Pointer to Mutual raw data. g_ctsu_mutual_raw[] is set by Open API.
+    uint16_t               * p_mutual_pri_corr;    ///< Pointer to Mutual primary correction data. g_ctsu_mutual_pri_corr[] is set by Open API.
+    uint16_t               * p_mutual_snd_corr;    ///< Pointer to Mutual secondary correction data. g_ctsu_mutual_snd_corr[] is set by Open API.
+    uint16_t               * p_mutual_pri_mfc;     ///< Pointer to Mutual primary multi frequency correction data. g_ctsu_pri_mutual_mfc[] is set by Open API.
+    uint16_t               * p_mutual_snd_mfc;     ///< Pointer to Mutual secondary multi frequency correction data. g_ctsu_snd_mutual_mfc[] is set by Open API.
+    ctsu_data_t            * p_mutual_pri_data;    ///< Pointer to Mutual primary moving average data. g_ctsu_mutual_pri_data[] is set by Open API.
+    ctsu_data_t            * p_mutual_snd_data;    ///< Pointer to Mutual secondary moving average data. g_ctsu_mutual_snd_data[] is set by Open API.
+    ctsu_correction_info_t * p_correction_info;    ///< Pointer to correction info
+    ctsu_txvsel_t            txvsel;               ///< CTSU Transmission Power Supply Select
+    ctsu_txvsel2_t           txvsel2;              ///< CTSU Transmission Power Supply Select 2 (CTSU2)
+    uint8_t                  ctsuchac0;            ///< TS00-TS07 enable mask
+    uint8_t                  ctsuchac1;            ///< TS08-TS15 enable mask
+    uint8_t                  ctsuchac2;            ///< TS16-TS23 enable mask
+    uint8_t                  ctsuchac3;            ///< TS24-TS31 enable mask
+    uint8_t                  ctsuchac4;            ///< TS32-TS39 enable mask
+    uint8_t                  ctsuchtrc0;           ///< TS00-TS07 mutual-tx mask
+    uint8_t                  ctsuchtrc1;           ///< TS08-TS15 mutual-tx mask
+    uint8_t                  ctsuchtrc2;           ///< TS16-TS23 mutual-tx mask
+    uint8_t                  ctsuchtrc3;           ///< TS24-TS31 mutual-tx mask
+    uint8_t                  ctsuchtrc4;           ///< TS32-TS39 mutual-tx mask
+    uint16_t                 self_elem_index;      ///< self element index number for Current instance.
+    uint16_t                 mutual_elem_index;    ///< mutual element index number for Current instance.
+    uint16_t                 ctsu_elem_index;      ///< CTSU element index number for Current instance.
+#if (BSP_FEATURE_CTSU_VERSION == 2)
+    uint8_t * p_selected_freq_self;                ///< Frequency selected by self-capacity
+    uint8_t * p_selected_freq_mutual;              ///< Frequency selected by mutual-capacity
 #endif
 #if (BSP_FEATURE_CTSU_VERSION == 1)
  #if (CTSU_CFG_DIAG_SUPPORT_ENABLE == 1)
-    ctsu_diag_info_t * p_diag_info;              ///< pointer to diagnosis info
+    ctsu_diag_info_t * p_diag_info;                ///< pointer to diagnosis info
  #endif
 #endif
 
@@ -321,20 +387,38 @@ typedef struct st_ctsu_instance_ctrl
  #if (CTSU_CFG_DIAG_SUPPORT_ENABLE == 1)
     ctsu_diag_info_t * p_diag_info;                ///< pointer to diagnosis info
  #endif
+ #if (CTSU_CFG_AUTO_JUDGE_ENABLE == 1)
+    uint32_t * p_ajthr;                            ///< Automatic judgement Threshold
+    uint32_t * p_ajmmar;                           ///< Automatic judgement Measurement moving average result
+    uint32_t * p_ajblact;                          ///< Automatic judgement Baseline average calculation
+    uint32_t * p_ajblar;                           ///< Automatic judgement Baseline average results
+    uint32_t * p_ajrr;                             ///< Automatic judgement Result
+    uint8_t    blini_flag;                         ///< Flags for controlling baseline initialization bit for automatic judgement
+    uint8_t    ajmmat;                             ///< Copy from config by Open API for automatic judgement
+    uint8_t    ajbmat;                             ///< Copy from config by Open  for automatic judgement
+ #endif
+ #if (CTSU_CFG_AUTO_MULTI_CLOCK_CORRECTION_ENABLE == 1)
+    uint32_t * p_mcact1;                           ///< Array of CTSUMCACT1 register write variables. g_ctsu_mcact1[] is set by Open API.
+    uint32_t * p_mcact2;                           ///< Array of CTSUMCACT2 register write variables. g_ctsu_mcact2[] is set by Open API.
+    uint8_t    mcact_flag;                         ///< Flags for controlling automatic frequency correction setting
+ #endif
 #endif
     ctsu_cfg_t const * p_ctsu_cfg;                 ///< Pointer to initial configurations.
     IRQn_Type          write_irq;                  ///< Copy from config by Open API. CTSU_CTSUWR interrupt vector
     IRQn_Type          read_irq;                   ///< Copy from config by Open API. CTSU_CTSURD interrupt vector
     IRQn_Type          end_irq;                    ///< Copy from config by Open API. CTSU_CTSUFN interrupt vector
     void (* p_callback)(ctsu_callback_args_t *);   ///< Callback provided when a CTSUFN occurs.
-    uint8_t                interrupt_reverse_flag; ///< Flag in which read interrupt and end interrupt are reversed
+    uint8_t                interrupt_reverse_flag; ///< Flag in which read interrupt and end interrupt are reversed.
     ctsu_event_t           error_status;           ///< error status variable to send to QE for serial tuning.
     ctsu_callback_args_t * p_callback_memory;      ///< Pointer to non-secure memory that can be used to pass arguments to a callback in non-secure memory.
-    void const           * p_context;              ///< Placeholder for user data.
+    void                 * p_context;              ///< Placeholder for user data.
     bool     serial_tuning_enable;                 ///< Flag of serial tuning status.
     uint16_t serial_tuning_mutual_cnt;             ///< Word index into ctsuwr register array.
-    uint16_t tuning_self_target_value;             ///< Target self value for initial offset tuning
-    uint16_t tuning_mutual_target_value;           ///< Target mutual value for initial offset tuning
+    uint16_t tuning_self_target_value;             ///< Target self value for initial offset tuning.
+    uint16_t tuning_mutual_target_value;           ///< Target mutual value for initial offset tuning.
+    uint8_t  tsod;                                 ///< Copy from tsod by Open API.
+    uint8_t  mec_ts;                               ///< Copy from mec_ts by Open API.
+    uint8_t  mec_shield_ts;                        ///< Copy from mec_shield_ts by Open API.
 } ctsu_instance_ctrl_t;
 
 /**********************************************************************************************************************
@@ -353,10 +437,11 @@ extern const ctsu_api_t g_ctsu_on_ctsu;
 fsp_err_t R_CTSU_Open(ctsu_ctrl_t * const p_ctrl, ctsu_cfg_t const * const p_cfg);
 fsp_err_t R_CTSU_ScanStart(ctsu_ctrl_t * const p_ctrl);
 fsp_err_t R_CTSU_DataGet(ctsu_ctrl_t * const p_ctrl, uint16_t * p_data);
+fsp_err_t R_CTSU_AutoJudgementDataGet(ctsu_ctrl_t * const p_ctrl, uint64_t * p_button_status);
 fsp_err_t R_CTSU_ScanStop(ctsu_ctrl_t * const p_ctrl);
 fsp_err_t R_CTSU_CallbackSet(ctsu_ctrl_t * const          p_api_ctrl,
                              void (                     * p_callback)(ctsu_callback_args_t *),
-                             void const * const           p_context,
+                             void * const                 p_context,
                              ctsu_callback_args_t * const p_callback_memory);
 fsp_err_t R_CTSU_Diagnosis(ctsu_ctrl_t * const p_ctrl);
 fsp_err_t R_CTSU_Close(ctsu_ctrl_t * const p_ctrl);
@@ -364,7 +449,7 @@ fsp_err_t R_CTSU_SpecificDataGet(ctsu_ctrl_t * const       p_ctrl,
                                  uint16_t                * p_specific_data,
                                  ctsu_specific_data_type_t specific_data_type);
 fsp_err_t R_CTSU_DataInsert(ctsu_ctrl_t * const p_ctrl, uint16_t * p_insert_data);
-fsp_err_t R_CTSU_OffsetTuning (ctsu_ctrl_t * const p_ctrl);
+fsp_err_t R_CTSU_OffsetTuning(ctsu_ctrl_t * const p_ctrl);
 
 /* Common macro for FSP header files. There is also a corresponding FSP_HEADER macro at the top of this file. */
 FSP_FOOTER
